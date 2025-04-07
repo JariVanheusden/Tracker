@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hydration Tracker</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        background-color: #cce7ff;
+        margin: 0;
+        padding-bottom: 70px; /* To avoid overlap with the footer */
+      }
+      .bottle {
+        position: relative;
+        width: 100px;
+        height: 200px;
+        border: 4px solid #007bff;
+        border-radius: 10px;
+        background: white;
+        overflow: hidden;
+      }
+      .water {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        background: #007bff;
+        height: 0%;
+        transition: height 0.5s;
+      }
+      .buttons {
+        margin-top: 20px;
+        text-align: center;
+      }
+      button {
+        margin: 5px;
+        padding: 12px 30px;
+        font-size: 16px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: background 0.3s, transform 0.3s;
+      }
+      button:hover {
+        background: #0056b3;
+        transform: translateY(-2px);
+      }
+      .message {
+        margin-top: 10px;
+        font-weight: bold;
+        color: green;
+      }
+      .footer {
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        padding: 10px 20px;
+        background: #f0f0f0;
+        border-radius: 20px;
+        box-shadow: 0 -10px 20px rgba(0, 0, 0, 0.1);
+      }
+      .footer a {
+        text-decoration: none;
+        color: #007bff;
+        font-size: 18px;
+        cursor: pointer;
+        padding: 10px 20px;
+        border-radius: 12px;
+        transition: background 0.3s;
+        margin: 0 10px;
+      }
+      .footer a:hover {
+        background-color: #007bff;
+        color: white;
+      }
+      .calendar {
+        display: none;
+        margin-top: 20px;
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 5px;
+      }
+      .day {
+        width: 40px;
+        height: 40px;
+        border: 1px solid #007bff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        cursor: pointer;
+      }
+      .day.filled {
+        background-color: green;
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Hydration Tracker</h1>
+    <div id="trackerView">
+      <div class="bottle">
+        <div class="water" id="waterLevel"></div>
+      </div>
+      <p id="waterAmount">0L / 1.5L</p>
+      <p id="message" class="message"></p>
+      <div class="buttons">
+        <button onclick="addWater(250)">+25cl</button>
+        <button onclick="addWater(500)">+50cl</button>
+      </div>
+    </div>
+
+    <div id="calendarView" class="calendar"></div>
+
+    <div class="footer">
+      <a onclick="showTracker()">Tracker</a>
+      <a onclick="showCalendar()">Calendar</a>
+    </div>
+
+    <script>
+      const maxWater = 1500;
+      let selectedDate = new Date().toISOString().split("T")[0];
+      let calendarData = JSON.parse(localStorage.getItem("waterData")) || {};
+
+      function addWater(amount) {
+        if (!calendarData[selectedDate]) {
+          calendarData[selectedDate] = 0;
+        }
+        calendarData[selectedDate] = Math.min(
+          calendarData[selectedDate] + amount,
+          maxWater
+        );
+        localStorage.setItem("waterData", JSON.stringify(calendarData));
+        updateTracker();
+        updateCalendar();
+      }
+
+      function updateTracker() {
+        let water = calendarData[selectedDate] || 0;
+        document.getElementById("waterLevel").style.height =
+          (water / maxWater) * 100 + "%";
+        document.getElementById("waterAmount").innerText =
+          water / 1000 + "L / 1.5L";
+        document.getElementById("message").innerText =
+          water >= maxWater ? "Enough water for the day, nice job!" : "";
+      }
+
+      function showTracker() {
+        document.getElementById("trackerView").style.display = "block";
+        document.getElementById("calendarView").style.display = "none";
+        updateTracker();
+      }
+
+      function showCalendar() {
+        document.getElementById("trackerView").style.display = "none";
+        document.getElementById("calendarView").style.display = "grid";
+        updateCalendar();
+      }
+
+      function updateCalendar() {
+        const calendar = document.getElementById("calendarView");
+        calendar.innerHTML = "";
+        for (let i = 1; i <= 30; i++) {
+          const day = document.createElement("div");
+          day.className = "day";
+          day.innerText = i;
+          const date = new Date();
+          date.setDate(i);
+          const dateString = date.toISOString().split("T")[0];
+
+          if (
+            calendarData[dateString] &&
+            calendarData[dateString] >= maxWater
+          ) {
+            day.classList.add("filled");
+          }
+
+          day.onclick = function () {
+            selectedDate = dateString;
+            showTracker();
+          };
+
+          calendar.appendChild(day);
+        }
+      }
+
+      updateTracker();
+    </script>
+  </body>
+</html>
