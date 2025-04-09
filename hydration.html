@@ -12,7 +12,8 @@
         align-items: center;
         justify-content: center;
         height: 100vh;
-        background-color: #cce7ff;
+        background: radial-gradient(#aee0ff, #88cfff);
+        overflow: hidden;
         margin: 0;
         padding-bottom: 70px; /* To avoid overlap with the footer */
       }
@@ -102,6 +103,26 @@
       .day.filled {
         background-color: green;
         color: white;
+      }
+      .bubble-bg {
+        position: fixed;
+        bottom: -50px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        animation: floatUp linear infinite;
+        z-index: 0;
+        pointer-events: none;
+      }
+
+      @keyframes floatUp {
+        0% {
+          transform: translateY(0) scale(1);
+          opacity: 0.7;
+        }
+        100% {
+          transform: translateY(-110vh) scale(0.5);
+          opacity: 0;
+        }
       }
     </style>
   </head>
@@ -194,6 +215,29 @@
       }
 
       updateTracker();
+
+      function createBackgroundBubbles() {
+        const body = document.body;
+
+        setInterval(() => {
+          const bubble = document.createElement("div");
+          bubble.className = "bubble-bg";
+
+          const size = Math.random() * 30 + 10;
+          bubble.style.width = `${size}px`;
+          bubble.style.height = `${size}px`;
+          bubble.style.left = `${Math.random() * 100}vw`;
+          bubble.style.animationDuration = `${Math.random() * 5 + 4}s`;
+
+          body.appendChild(bubble);
+
+          setTimeout(() => {
+            bubble.remove();
+          }, 10000);
+        }, 400);
+      }
+
+      createBackgroundBubbles();
     </script>
   </body>
 </html>
